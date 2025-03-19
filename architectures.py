@@ -19,9 +19,8 @@ class MultiViewModel(nn.Module):
                  hidden_dim=1024,
                  spatial_pool=False,
                  pretrained=False,
-                 freeze_layers=False,
-                 freeze_until=6,
-                 weight_path=None):
+                 freeze_layers=True,
+                 freeze_until=4):
 
         super().__init__()
 
@@ -32,10 +31,6 @@ class MultiViewModel(nn.Module):
             num_classes=num_classes,
             **classification_params
         )
-
-        if pretrained:
-            state_dict = torch.load(weight_path)
-            self.encoder.load_state_dict(state_dict, strict=False)
 
         if freeze_layers and hasattr(self.encoder, 'stages'):
             for i, stage in enumerate(self.encoder.stages):
