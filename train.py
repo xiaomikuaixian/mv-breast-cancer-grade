@@ -16,7 +16,7 @@ import traceback
 # 导入Kuma的TorchTrainer和TorchLogger炼丹炉
 from train_utils.torch import TorchTrainer, TorchLogger
 from train_utils.torch.utils import get_time, seed_everything, fit_state_dict
-from train_utils.utils import sigmoid
+# from train_utils.utils import sigmoid
 from timm.layers import convert_sync_batchnorm
 
 # 导入我的配置文件
@@ -34,7 +34,6 @@ if __name__ == "__main__":
                         help="train only specified fold")
     parser.add_argument("--num_workers", type=int, default=0)
     parser.add_argument("--inference", action='store_true', help="inference")
-    parser.add_argument("--extended_inference", action='store_true')
     parser.add_argument("--tta", action='store_true', 
                         help="test time augmentation ")
     parser.add_argument("--debug", action='store_true')
@@ -82,7 +81,7 @@ if __name__ == "__main__":
     train = pd.read_csv(cfg.train_path)
     # data preprocessor
     if opt.debug:
-        train = train.iloc[:40]
+        train = train.iloc[:100]
     splitter = cfg.splitter
     fold_iter = list(splitter.split(X=train, y=train[cfg.target_cols], groups=train[cfg.group_col]))
     
@@ -147,7 +146,8 @@ if __name__ == "__main__":
         valid_loader = D.DataLoader(
             valid_data, batch_size=cfg.batch_size, shuffle=False,
             num_workers=opt.num_workers, pin_memory=True)
-
+        
+        # model 为 MultiViewModel对象
         model = cfg.model(**cfg.model_params)
 
         # Load snapshot
@@ -266,7 +266,7 @@ if __name__ == "__main__":
             num_workers=opt.num_workers, pin_memory=True)
 
         model = cfg.model(**cfg.model_params)
-        checkpoint = torch.load(export_dir/f'fold{fold}.pt', 'cpu')
+        checkpoint = torch.load(export_dir/f'fold{fold}.pt', map_location='cpu', weights_only=False)
         # clean up checkpoint
         if 'checkpoints' in checkpoint.keys():
             del checkpoint['checkpoints']
@@ -288,7 +288,6 @@ if __name__ == "__main__":
         trainer.register(hook=cfg.hook, callbacks=cfg.callbacks)
         pred_logits = trainer.predict(valid_loader, parallel=inference_parallel, progress_bar=opt.progress_bar)
         target_fold = valid_data.get_labels()
-        valid_sites = [valid_data.df_dict[valid_data.pids[i]]['site_id'].values[0] for i in range(len(valid_data))]
 
         if cfg.hook.__class__.__name__ == 'SingleImageAggregatedTrain': # max aggregation
             valid_fold['prediction'] = pred_logits.reshape(-1)
@@ -296,15 +295,6 @@ if __name__ == "__main__":
                 {'prediction': 'max', 'grade_2_categ': 'first'})
             pred_logits = agg_df['prediction'].values.reshape(-1, 1)
             target_fold = agg_df['grade_2_categ'].values.reshape(-1, 1)
-        
-        if opt.extended_inference: # Use logits for aggregation
-            results = []
-            for (_, pid, lat), p, t, s in zip(valid_data.pids, pred_logits.reshape(-1), target_fold.reshape(-1), valid_sites):
-                results.append({'prediction_id': f'{pid}_{lat}', 'pred': p, 'target': t, 'site_id': s})
-            results = pd.DataFrame(results).groupby('prediction_id').agg({'pred': 'mean', 'target': 'max', 'site_id': 'max'}).reset_index()
-            pred_logits = results['pred'].values.reshape(-1, 1)
-            target_fold = results['target'].values.reshape(-1, 1)
-            valid_sites = results['site_id'].values.tolist()
 
         eval_score_fold, thres = eval_metric(torch.from_numpy(pred_logits), torch.from_numpy(target_fold))
         LOGGER(f'PFbeta: {eval_score_fold:.5f} threshold: {thres:.5f}')

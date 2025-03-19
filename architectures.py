@@ -37,7 +37,6 @@ class MultiViewModel(nn.Module):
                 if i < freeze_until:
                     for param in stage.parameters():
                         param.requires_grad = False
-            print(f"冻结了ConvNeXt的前{freeze_until}个阶段")
 
         feature_dim = self.encoder.get_classifier().in_features
         self.encoder.reset_classifier(0, '')

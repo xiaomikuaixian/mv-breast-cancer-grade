@@ -42,7 +42,7 @@ class Baseline:
         pretrained=True,
     )
     weight_path = None
-    num_epochs = 15
+    num_epochs = 20
     batch_size = 16
     optimizer = optim.Adam
     optimizer_params = dict(lr=2e-4, weight_decay=1e-6)
