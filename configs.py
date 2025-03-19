@@ -230,7 +230,7 @@ class GradeClassifierConfig(Aug07lr0):
         classification_model='convnext_small.fb_in22k_ft_in1k_384',
         pretrained=True,
         spatial_pool=True,
-        freeze_until=6      # 冻结前6层卷积块
+        freeze_until=4      # 冻结前4层卷积块
     )
     
     # 对于小数据集，不使用分布式训练
