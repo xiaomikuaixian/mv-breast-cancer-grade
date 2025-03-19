@@ -1,0 +1,10 @@
+# 忽略结果和预训练模型
+results/
+pretrained_models/
+
+# 忽略整个input文件夹
+input/
+
+# 如果保留以下特定规则的话，它们会变得多余，因为整个input/已被忽略
+# input/BC_MG/train_images/*DCM
+# input/BC_MG/image_resized_2048/*png
