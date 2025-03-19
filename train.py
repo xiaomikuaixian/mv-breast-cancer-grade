@@ -130,6 +130,7 @@ if __name__ == "__main__":
             if 'fold' in addon_train.columns:
                 addon_train = addon_train.loc[addon_train['fold'] == fold]
             train_data.update_df(addon_train)
+        # 统计正负样本数量
         train_weights = train_data.get_labels().reshape(-1)
         valid_weights = valid_data.get_labels().reshape(-1)
         train_weights[train_weights == 1] = (train_weights == 0).sum() / (train_weights == 1).sum()
@@ -386,5 +387,3 @@ if __name__ == "__main__":
             'Training has finished successfully.',
             f'mean +- std: {np.mean(scores):.5f} +- {np.std(scores):.5f}'
         ]))
-
-    # python train.py --config {config name} --num_works {number of cpu cores to be used}

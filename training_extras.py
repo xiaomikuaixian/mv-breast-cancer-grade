@@ -1,9 +1,8 @@
 import torch
 import pandas as pd
 from torch.distributions.beta import Beta
-from kuma_utils.torch.utils import freeze_module
-from kuma_utils.torch.hooks import SimpleHook
-from kuma_utils.torch.callbacks import CallbackTemplate
+from train_utils.torch.hooks import SimpleHook
+from train_utils.torch.callbacks import CallbackTemplate
 
 
 def extend_df(df, max_record_per_patient=2, view_category=[['MLO', 'LMO', 'LM', 'ML'], ['CC', 'AT']]):

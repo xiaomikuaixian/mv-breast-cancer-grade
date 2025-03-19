@@ -24,7 +24,7 @@ from global_objectives.losses import AUCPRLoss
 class Baseline:
     name = 'baseline'
     seed = 2025
-    train_path = DATA_DIR/'train_images/train.csv'
+    train_path = DATA_DIR/'image_resized_2048/train.csv'
     addon_train_path = None
     image_dir = Path('input/BC_MG/image_resized_2048')
     cv = 5
@@ -192,7 +192,7 @@ class Aug07lr0(Aug07):
 # 新增：乳腺癌组织分级优化配置
 class GradeClassifierConfig(Aug07lr0):
     name = 'grade_classifier'
-    weight_path = 'pretrained_models/best_convnext_fold_3.pth.tar'
+    weight_path = 'pretrained_models/pretrained_convnext_2048.pth.tar'
     
     # 使用较小分辨率以减少训练时间但保持性能
     preprocess = dict(
@@ -230,7 +230,6 @@ class GradeClassifierConfig(Aug07lr0):
         classification_model='convnext_small.fb_in22k_ft_in1k_384',
         pretrained=True,
         spatial_pool=True,
-        freeze_layers=True,  # 启用层冻结
         freeze_until=6      # 冻结前6层卷积块
     )
     

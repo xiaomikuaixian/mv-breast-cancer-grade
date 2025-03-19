@@ -2,7 +2,7 @@ import numpy as np
 import torch
 import torch.nn as nn
 from sklearn.metrics import precision_recall_curve, auc
-from kuma_utils.metrics import MetricTemplate
+from train_utils.metrics import MetricTemplate
 
 
 class Pfbeta(nn.Module):

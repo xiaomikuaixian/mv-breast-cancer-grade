@@ -34,24 +34,26 @@ class PatientLevelDataset(D.Dataset):
     """
     def __init__(
         self, 
+        # 目标和元数据相关参数
         df, 
         image_dir, 
-        # 目标和元数据相关参数
         target_cols=None,
         aux_target_cols=None, 
         metadata_cols=None, 
-        # 路径和图像处理相关参数
         sep='/', 
+
+        # 路径和图像处理相关参数
         bbox_path=None, 
         preprocess=None, 
         transforms=None, 
-        flip_lr=False,
+
         # 采样策略相关参数
         sample_num=1, 
         view_category=None, 
         replace=False, 
         sample_criteria='high_value', 
         is_test=False, 
+
         # 其他参数
         mixup_params=None, 
         return_index=False
@@ -87,7 +89,8 @@ class PatientLevelDataset(D.Dataset):
         self.view_category = view_category
         self.replace = replace
         self.sample_criteria = sample_criteria
-        # 针对测试集的采样策略
+        
+        # 针对测试集的数据采样策略
         assert sample_criteria in ['high_value', 'low_value_for_implant', 'latest', 'valid_area']
         if mixup_params:
             assert 'alpha' in mixup_params.keys()
