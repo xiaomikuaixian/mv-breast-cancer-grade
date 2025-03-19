@@ -82,7 +82,7 @@ if __name__ == "__main__":
     train = pd.read_csv(cfg.train_path)
     # data preprocessor
     if opt.debug:
-        train = train.iloc[:1000]
+        train = train.iloc[:40]
     splitter = cfg.splitter
     fold_iter = list(splitter.split(X=train, y=train[cfg.target_cols], groups=train[cfg.group_col]))
     

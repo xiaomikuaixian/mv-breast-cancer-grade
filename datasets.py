@@ -66,7 +66,7 @@ class PatientLevelDataset(D.Dataset):
         if metadata_cols is None:
             metadata_cols = []
         if view_category is None:
-            view_category = [['MLO', 'CC']]
+            view_category = [['MLO'], ['CC']]
         
         self.df = df
         if 'oversample_id' in df.columns:
@@ -131,6 +131,7 @@ class PatientLevelDataset(D.Dataset):
 
         if self.preprocess:
             if bbox is None:
+                # 输出图像的维度
                 img = self.preprocess(image=img)['image']
             else:
                 img_h, img_w = img.shape
@@ -263,7 +264,7 @@ class PatientLevelDataset(D.Dataset):
         pdf = self.df_dict[pid]
         img = []
         img_ids = []  # 记录已采样的图像ID
-
+        print(idx)
         print(self.view_category)
         print(pdf)
         
@@ -284,13 +285,14 @@ class PatientLevelDataset(D.Dataset):
                     view0 = view0.sample(min(self.sample_num, len(view0)))
                     img0 = []
                     for pid, iid in view0[['patient_id', 'image_id']].values:
+                        print(pid, iid)
                         img_path = self._get_file_path(pid, iid)
                         bbox = self._get_bbox(pid, iid)
                         img0.append(self._load_image(img_path, bbox))
                         if not self.replace:
                             img_ids.append(iid)
             img.extend(img0)
-        
+        print(img)
         img = torch.stack(img, dim=0)
         expected_dim = self.sample_num * len(self.view_category)
         if img.shape[0] < expected_dim:

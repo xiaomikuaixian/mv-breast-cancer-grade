@@ -74,60 +74,74 @@ class ImageToTile(ImageOnlyTransform):
     
 
 
-class CropROI(DualTransform):
-
-    def __init__(self, threshold=0.1, buffer=30, always_apply=True, p=1.0):
+class CropROI(ImageOnlyTransform):
+    """基于最大连通组件的ROI裁剪。
+    
+    Args:
+        threshold (float): 二值化阈值，范围[0,1]
+        buffer (int): ROI周围的缓冲区大小（像素）
+        always_apply (bool): 是否总是应用此变换
+        p (float): 应用此变换的概率
+    """
+    def __init__(self, threshold=0.1, buffer=80, always_apply=True, p=1.0):
         super().__init__(always_apply, p)
         self.threshold = threshold
         self.buffer = buffer
 
-    def get_buffer_thres(self):
-        return self.buffer, self.threshold
-
-    def get_params_dependent_on_targets(self, params):
-        _img = params['image']
-        if len(_img.shape) == 3:
-            img = _img.max(2)
+    def apply(self, img, **params):
+        # 确保输入图像是灰度图
+        if len(img.shape) == 3:
+            img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
         else:
-            img = _img
-        buffer, threshold = self.get_buffer_thres()
-        y_max, x_max = img.shape
-        img2 = img > img.mean()
-        y_mean = img2.mean(0)
-        x_mean = img2.mean(1)
-        x_mean[:5] = 0
-        x_mean[-5:] = 0
-        y_mean[:5] = 0
-        y_mean[-5:] = 0
-        y_mean = (y_mean - y_mean.min() + 1e-4) / (y_mean.max() - y_mean.min() + 1e-4)
-        x_mean = (x_mean - x_mean.min() + 1e-4) / (x_mean.max() - x_mean.min() + 1e-4)
-        y_slice = np.where(y_mean > threshold)[0]
-        x_slice = np.where(x_mean > threshold)[0]
-        if len(x_slice) == 0:
-            x_start, x_end = 0, x_max
-        else:
-            x_start, x_end = max(x_slice.min() - buffer, 0), min(x_slice.max() + buffer, x_max)
-        if len(y_slice) == 0:
-            y_start, y_end = 0, y_max
-        else:
-            y_start, y_end = max(y_slice.min() - buffer, 0), min(y_slice.max() + buffer, y_max)
-        return {"x_min": y_start, "x_max": y_end, "y_min": x_start, "y_max": x_end}
+            img_gray = img.copy()
 
-    def apply(self, img, x_min=0, y_min=0, x_max=0, y_max=0, **params):
-        return img[y_min:y_max, x_min:x_max]
+        # 1. 图像归一化
+        normalized = img_gray.astype(float) / 255.0
 
-    def apply_to_mask(self, mask, x_min=0, y_min=0, x_max=0, y_max=0, **params):
-        return mask[y_min:y_max, x_min:x_max, :]
+        # 2. 二值化
+        binary = (normalized > self.threshold).astype(np.uint8)
 
-    def apply_to_bbox(self, bbox, x_min=0, y_min=0, x_max=0, y_max=0, **params): # TODO
-        return bbox
-    
-    @property
-    def targets_as_params(self):
-        return ["image"]
-    
+        # 3. 寻找连通组件
+        num_labels, labels, stats, centroids = cv2.connectedComponentsWithStats(
+            binary, connectivity=8
+        )
+
+        # 4. 找到最大的连通组件（排除背景）
+        if num_labels > 1:  # 确保至少有一个连通组件（除背景外）
+            # 获取所有连通组件的面积（排除背景）
+            areas = stats[1:, cv2.CC_STAT_AREA]
+            max_label = np.argmax(areas) + 1  # +1 因为背景标签为0
+            
+            # 创建最大连通组件的掩码
+            mask = (labels == max_label).astype(np.uint8)
+
+            # 5. 添加缓冲区
+            if self.buffer > 0:
+                kernel = np.ones((self.buffer, self.buffer), np.uint8)
+                mask = cv2.dilate(mask, kernel)
+
+            # 6. 获取ROI边界
+            rows = np.any(mask, axis=1)
+            cols = np.any(mask, axis=0)
+            
+            if np.any(rows) and np.any(cols):  # 确保找到了非空区域
+                rmin, rmax = np.where(rows)[0][[0, -1]]
+                cmin, cmax = np.where(cols)[0][[0, -1]]
+
+                # 7. 添加缓冲区（确保不超出图像边界）
+                rmin = max(0, rmin)
+                rmax = min(img.shape[0], rmax)
+                cmin = max(0, cmin)
+                cmax = min(img.shape[1], cmax)
+
+                # 8. 裁剪图像
+                return img[rmin:rmax, cmin:cmax]
+
+        # 如果没有找到有效的连通组件，返回原始图像
+        return img
+
     def get_transform_init_args_names(self):
-        return ('threshold', 'buffer')
+        return ("threshold", "buffer")
 
 
 class RandomCropROI(DualTransform):
