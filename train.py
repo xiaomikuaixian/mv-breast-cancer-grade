@@ -152,12 +152,12 @@ if __name__ == "__main__":
 
         # Load snapshot
         if cfg.weight_path is not None:
-            if cfg.weight_path.is_dir():
-                weight_path = cfg.weight_path / f'fold{fold}.pt'
-            else:
-                weight_path = cfg.weight_path
+            # if cfg.weight_path.is_dir():
+            #     weight_path = cfg.weight_path / f'fold{fold}.pt'
+            # else:
+            weight_path = cfg.weight_path
             LOGGER(f'{weight_path} loaded.')
-            weight = torch.load(weight_path, 'cpu')['model']
+            weight = torch.load(weight_path, 'cpu')
             fit_state_dict(weight, model)
             model.load_state_dict(weight, strict=False)
             del weight; gc.collect()

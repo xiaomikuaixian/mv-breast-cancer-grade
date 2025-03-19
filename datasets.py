@@ -66,7 +66,7 @@ class PatientLevelDataset(D.Dataset):
         if metadata_cols is None:
             metadata_cols = []
         if view_category is None:
-            view_category = [['MLO', 'LMO', 'LM', 'ML'], ['CC', 'AT']]
+            view_category = [['MLO', 'CC']]
         
         self.df = df
         if 'oversample_id' in df.columns:
@@ -89,7 +89,7 @@ class PatientLevelDataset(D.Dataset):
         self.view_category = view_category
         self.replace = replace
         self.sample_criteria = sample_criteria
-        
+
         # 针对测试集的数据采样策略
         assert sample_criteria in ['high_value', 'low_value_for_implant', 'latest', 'valid_area']
         if mixup_params:
@@ -128,6 +128,7 @@ class PatientLevelDataset(D.Dataset):
         Returns:
             处理后的图像
         """
+
         if self.preprocess:
             if bbox is None:
                 img = self.preprocess(image=img)['image']
@@ -262,10 +263,14 @@ class PatientLevelDataset(D.Dataset):
         pdf = self.df_dict[pid]
         img = []
         img_ids = []  # 记录已采样的图像ID
+
+        print(self.view_category)
+        print(pdf)
         
         # 从每个视图类别中采样图像
         for iv, view_cat in enumerate(self.view_category):
             view0 = pdf.loc[pdf['view'].isin(view_cat) & ~pdf['image_id'].isin(img_ids)]
+            print(view0)
             if not self.replace and len(view0) == 0:
                 view0 = pdf.loc[pdf['view'].isin(view_cat)]
             if len(view0) == 0:
