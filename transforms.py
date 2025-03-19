@@ -89,6 +89,9 @@ class CropROI(ImageOnlyTransform):
         self.buffer = buffer
 
     def apply(self, img, **params):
+        # 转换为float32类型
+        img = img.astype(np.float32)
+        
         # 确保输入图像是灰度图
         if len(img.shape) == 3:
             img_gray = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)

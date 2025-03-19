@@ -264,14 +264,10 @@ class PatientLevelDataset(D.Dataset):
         pdf = self.df_dict[pid]
         img = []
         img_ids = []  # 记录已采样的图像ID
-        print(idx)
-        print(self.view_category)
-        print(pdf)
         
         # 从每个视图类别中采样图像
         for iv, view_cat in enumerate(self.view_category):
             view0 = pdf.loc[pdf['view'].isin(view_cat) & ~pdf['image_id'].isin(img_ids)]
-            print(view0)
             if not self.replace and len(view0) == 0:
                 view0 = pdf.loc[pdf['view'].isin(view_cat)]
             if len(view0) == 0:
@@ -285,14 +281,12 @@ class PatientLevelDataset(D.Dataset):
                     view0 = view0.sample(min(self.sample_num, len(view0)))
                     img0 = []
                     for pid, iid in view0[['patient_id', 'image_id']].values:
-                        print(pid, iid)
                         img_path = self._get_file_path(pid, iid)
                         bbox = self._get_bbox(pid, iid)
                         img0.append(self._load_image(img_path, bbox))
                         if not self.replace:
                             img_ids.append(iid)
             img.extend(img0)
-        print(img)
         img = torch.stack(img, dim=0)
         expected_dim = self.sample_num * len(self.view_category)
         if img.shape[0] < expected_dim:
