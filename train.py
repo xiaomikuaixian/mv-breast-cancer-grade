@@ -41,7 +41,6 @@ if __name__ == "__main__":
     parser.add_argument("--silent", action='store_true')
     parser.add_argument("--progress_bar", action='store_true')
     parser.add_argument("--skip_existing", action='store_true')
-    parser.add_argument("--calibrate", action='store_true')
     parser.add_argument("--resume", action='store_true')
     parser.add_argument("--wait", type=int, default=0,
                         help="time (sec) to wait before execution")

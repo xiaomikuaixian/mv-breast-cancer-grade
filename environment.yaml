@@ -1,4 +1,4 @@
-name: kumaconda22
+name: bc_conda
 channels:
   - pytorch
   - anaconda
