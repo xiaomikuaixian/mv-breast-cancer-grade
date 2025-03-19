@@ -35,7 +35,6 @@ if __name__ == "__main__":
     parser.add_argument("--num_workers", type=int, default=0)
     parser.add_argument("--inference", action='store_true', help="inference")
     parser.add_argument("--extended_inference", action='store_true')
-    parser.add_argument("--per_site_inference", action='store_true')
     parser.add_argument("--tta", action='store_true', 
                         help="test time augmentation ")
     parser.add_argument("--debug", action='store_true')
@@ -272,7 +271,6 @@ if __name__ == "__main__":
     outoffolds = []
     oof_targets = []
     thresholds = []
-    sites = []
     eval_metric = Pfbeta(binarize=True, return_thres=True)
     
     for fold, (train_idx, valid_idx) in enumerate(fold_iter):
@@ -336,30 +334,9 @@ if __name__ == "__main__":
             target_fold = results['target'].values.reshape(-1, 1)
             valid_sites = results['site_id'].values.tolist()
 
-        if opt.per_site_inference:
-            sites.append(valid_sites)
-            results = pd.DataFrame({
-                'site_id': valid_sites, 
-                'pred': pred_logits.reshape(-1), 
-                'pred_bin': pred_logits.reshape(-1), 
-                'label': target_fold.reshape(-1)})
-            thres_fold = []
-            for site in [1, 2]:
-                score_site, thres_site = eval_metric(
-                    torch.from_numpy(results.query('site_id == @site')['pred'].values),
-                    torch.from_numpy(results.query('site_id == @site')['label'].values), )
-                LOGGER(f'Site {site} PFbeta: {score_site:.5f} threshold: {thres_site:.5f}')
-                results.loc[results['site_id'] == site, 'pred_bin'] = (sigmoid(results.loc[results['site_id'] == site, 'pred']) > thres_site).astype(float)
-                thres_fold.append(thres_site)
-            pred_logits = results['pred'].values.reshape(-1, 1)
-            target_fold = results['label'].values.reshape(-1, 1)
-            eval_score_fold = eval_metric.pfbeta(results['label'].values, results['pred_bin'].values)
-            LOGGER(f'Overall PFbeta: {eval_score_fold:.5f}')
-            thresholds.append(thres_fold)
-        else:
-            eval_score_fold, thres = eval_metric(torch.from_numpy(pred_logits), torch.from_numpy(target_fold))
-            LOGGER(f'PFbeta: {eval_score_fold:.5f} threshold: {thres:.5f}')
-            thresholds.append(thres)
+        eval_score_fold, thres = eval_metric(torch.from_numpy(pred_logits), torch.from_numpy(target_fold))
+        LOGGER(f'PFbeta: {eval_score_fold:.5f} threshold: {thres:.5f}')
+        thresholds.append(thres)
 
         for im, metric_f in enumerate(cfg.monitor_metrics):
             LOGGER(f'Monitor metric {im}: {metric_f(torch.from_numpy(pred_logits), torch.from_numpy(target_fold)):.5f}')
@@ -375,7 +352,6 @@ if __name__ == "__main__":
             'folds': fold_iter,
             'outoffolds': outoffolds, 
             'targets': oof_targets,
-            'sites': sites,
             'thresholds': thresholds
         }, f)
 
