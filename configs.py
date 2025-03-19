@@ -24,7 +24,7 @@ from global_objectives.losses import AUCPRLoss
 class Baseline:
     name = 'baseline'
     seed = 2025
-    train_path = DATA_DIR/'image_resized_2048/train.csv'
+    train_path = DATA_DIR/'train_images/train.csv'
     addon_train_path = None
     image_dir = Path('input/BC_MG/image_resized_2048')
     cv = 5
