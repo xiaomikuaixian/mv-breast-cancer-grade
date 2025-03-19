@@ -224,33 +224,6 @@ if __name__ == "__main__":
                 find_unused_parameters=True
             )
             trainer.fit(**FIT_PARAMS)
-            
-            # 添加：在每个epoch后获取训练和验证指标，监控过拟合情况
-            train_metrics = trainer.history['train_monitor']
-            valid_metrics = trainer.history['valid_monitor']
-            
-            if len(train_metrics) > 0 and len(valid_metrics) > 0:
-                # 计算最后5个epoch的平均差异
-                last_n = min(5, len(train_metrics))
-                train_avg = sum(train_metrics[-last_n:]) / last_n
-                valid_avg = sum(valid_metrics[-last_n:]) / last_n
-                metric_diff = train_avg - valid_avg
-                
-                LOGGER(f"训练过程监控 - 最后{last_n}个epoch:")
-                LOGGER(f"平均训练指标: {train_avg:.4f}, 平均验证指标: {valid_avg:.4f}")
-                LOGGER(f"指标差异: {metric_diff:.4f} ({'疑似过拟合' if metric_diff > 0.1 else '正常'})")
-                
-                # 记录训练和验证损失的差异
-                if 'train_loss' in trainer.history and 'valid_loss' in trainer.history:
-                    train_loss = trainer.history['train_loss'][-last_n:]
-                    valid_loss = trainer.history['valid_loss'][-last_n:]
-                    avg_train_loss = sum(train_loss) / last_n
-                    avg_valid_loss = sum(valid_loss) / last_n
-                    loss_diff = avg_valid_loss - avg_train_loss
-                    
-                    LOGGER(f"平均训练损失: {avg_train_loss:.4f}, 平均验证损失: {avg_valid_loss:.4f}")
-                    LOGGER(f"损失差异: {loss_diff:.4f} ({'疑似过拟合' if loss_diff > 0.1 else '正常'})")
-                
         except Exception as e:
             err = traceback.format_exc()
             LOGGER(err)
