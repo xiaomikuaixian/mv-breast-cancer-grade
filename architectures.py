@@ -1,9 +1,6 @@
 import torch.nn as nn
 import timm
 from train_utils.torch.modules import AdaptiveConcatPool2d, AdaptiveGeM
-import torch
-
-from modules import *
 
 class MultiViewModel(nn.Module):
     def __init__(self,
@@ -41,10 +38,7 @@ class MultiViewModel(nn.Module):
         feature_dim = self.encoder.get_classifier().in_features
         self.encoder.reset_classifier(0, '')
 
-        if custom_attention == 'triplet':
-            self.attention = TripletAttention()
-        else:
-            self.attention = nn.Identity()
+        self.attention = nn.Identity()
 
         if custom_classifier == 'avg':
             self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
@@ -58,17 +52,7 @@ class MultiViewModel(nn.Module):
         else:
             self.global_pool = nn.AdaptiveAvgPool2d((1, 1))
         
-        if 'Transformer' in self.encoder.__class__.__name__:
-            self.encoder.patch_embed = CustomHybdridEmbed(
-                self.encoder.patch_embed.proj, 
-                channel_in=in_chans,
-                transformer_original_input_size=(1, in_chans, *self.encoder.patch_embed.img_size),
-                pretrained=pretrained
-            )
-            self.is_tranformer = True
-        else:
-            self.is_tranformer = False
-        
+        self.is_tranformer = False
         self.spatial_pool = spatial_pool
         self.pool_view = pool_view
         if self.spatial_pool or self.pool_view:

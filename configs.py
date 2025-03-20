@@ -216,7 +216,7 @@ class GradeClassifierConfig(Aug07lr0):
     optimizer_params = dict(lr=5e-5, weight_decay=1e-6)
     
     # 减少训练轮数，配合早停策略
-    num_epochs = 15
+    num_epochs = 20
     
     # 修改回调函数，提前早停，避免过拟合
     callbacks = [
@@ -233,10 +233,8 @@ class GradeClassifierConfig(Aug07lr0):
         freeze_layers=True,
         freeze_until=4      # 冻结前4层卷积块
     )
-    
     # 对于小数据集，不使用分布式训练
     parallel = None
-    
     # 数据集参数调整
     dataset_params = dict(
         sample_criteria='valid_area',

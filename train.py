@@ -1,4 +1,5 @@
 import argparse
+import os
 from pathlib import Path
 from pprint import pprint
 import gc
@@ -16,13 +17,15 @@ import traceback
 # 导入Kuma的TorchTrainer和TorchLogger炼丹炉
 from train_utils.torch import TorchTrainer, TorchLogger
 from train_utils.torch.utils import get_time, seed_everything, fit_state_dict
-# from train_utils.utils import sigmoid
 from timm.layers import convert_sync_batchnorm
 
-# 导入我的配置文件
+# 导入配置文件
 from configs import *
+
+# 导入工具函数
 from utils import print_config, notify_me, oversample_data
-# 导入我的指标
+
+# 导入评估指标
 from metrics import Pfbeta
 
 
@@ -122,12 +125,8 @@ if __name__ == "__main__":
             transforms=cfg.transforms['test'],
             is_test=True,
             **cfg.dataset_params)
-        if cfg.addon_train_path is not None:
-            addon_train = pd.read_csv(cfg.addon_train_path)
-            if 'fold' in addon_train.columns:
-                addon_train = addon_train.loc[addon_train['fold'] == fold]
-            train_data.update_df(addon_train)
-        # 统计正负样本数量
+        
+        # 计算训练数据中的样本权重，以便在训练过程中对正负样本进行加权处理
         train_weights = train_data.get_labels().reshape(-1)
         valid_weights = valid_data.get_labels().reshape(-1)
         train_weights[train_weights == 1] = (train_weights == 0).sum() / (train_weights == 1).sum()
@@ -152,10 +151,11 @@ if __name__ == "__main__":
 
         # Load snapshot
         if cfg.weight_path is not None:
-            # if cfg.weight_path.is_dir():
-            #     weight_path = cfg.weight_path / f'fold{fold}.pt'
-            # else:
-            weight_path = cfg.weight_path
+            # 判断cfg.weight_path是否为文件夹
+            if os.path.isdir(cfg.weight_path):
+                weight_path = cfg.weight_path / f'fold{fold}.pt'
+            else:
+                weight_path = cfg.weight_path
             LOGGER(f'{weight_path} loaded.')
             weight = torch.load(weight_path, 'cpu')
             fit_state_dict(weight, model)
@@ -267,6 +267,7 @@ if __name__ == "__main__":
 
         model = cfg.model(**cfg.model_params)
         checkpoint = torch.load(export_dir/f'fold{fold}.pt', map_location='cpu', weights_only=False)
+        
         # clean up checkpoint
         if 'checkpoints' in checkpoint.keys():
             del checkpoint['checkpoints']
