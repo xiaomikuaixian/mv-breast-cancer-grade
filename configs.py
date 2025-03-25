@@ -9,7 +9,8 @@ from albumentations.pytorch.transforms import ToTensorV2
 from train_utils.torch.callbacks import (
     EarlyStopping,SaveAverageSnapshot, CollectTopK)
 from train_utils.torch.hooks import TrainHook
-from train_utils.metrics import AUC, Accuracy, Recall, Precision
+from train_utils.metrics import AUC
+from metrics import Accuracy, Recall, Precision
 
 from general import *
 from datasets import PatientLevelDataset

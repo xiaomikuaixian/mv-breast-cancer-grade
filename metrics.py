@@ -147,3 +147,40 @@ class PRAUC(MetricTemplate):
             target = (target >= np.percentile(target, self.p)).astype(float)
         precision, recall, thresholds = precision_recall_curve(target.reshape(-1), approx)
         return auc(recall, precision)
+    
+
+import torch
+
+class Accuracy:
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+
+    def torch(self, preds, targets):
+        preds_bin = (torch.sigmoid(preds) > self.threshold).float()
+        correct = (preds_bin == targets).float().sum()
+        return (correct / targets.numel()).item()
+
+
+class Recall:
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+
+    def torch(self, preds, targets):
+        preds_bin = (torch.sigmoid(preds) > self.threshold).float()
+        tp = ((preds_bin == 1) & (targets == 1)).sum().float()
+        fn = ((preds_bin == 0) & (targets == 1)).sum().float()
+        recall = tp / (tp + fn + 1e-7)
+        return recall.item()
+
+
+class Precision:
+    def __init__(self, threshold=0.5):
+        self.threshold = threshold
+
+    def torch(self, preds, targets):
+        preds_bin = (torch.sigmoid(preds) > self.threshold).float()
+        tp = ((preds_bin == 1) & (targets == 1)).sum().float()
+        fp = ((preds_bin == 1) & (targets == 0)).sum().float()
+        precision = tp / (tp + fp + 1e-7)
+        return precision.item()
+
