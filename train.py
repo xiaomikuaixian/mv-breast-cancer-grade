@@ -17,22 +17,6 @@ from configs import *
 from utils import print_config
 from metrics import Pfbeta
 
-import torchvision.utils as vutils
-
-class SaveInputImagesCallback:
-    def __init__(self, save_dir, interval=10):
-        self.save_dir = Path(save_dir)
-        self.save_dir.mkdir(parents=True, exist_ok=True)
-        self.interval = interval  # 每interval个batch保存一次
-
-    def __call__(self, trainer):
-        # trainer.batch 是当前batch索引
-        if trainer.batch % self.interval == 0:
-            images = trainer.input[0].cpu().detach()
-            grid = vutils.make_grid(images, normalize=True, scale_each=True)
-            save_path = self.save_dir / f'fold{trainer.serial}_epoch{trainer.epoch}_batch{trainer.batch}.png'
-            vutils.save_image(grid, save_path)
-
 
 if __name__ == "__main__":
     # 命令行参数解析
@@ -110,7 +94,7 @@ if __name__ == "__main__":
 
         # 定义训练参数
         FIT_PARAMS = dict(loader=train_loader, loader_valid=valid_loader, criterion=cfg.criterion, optimizer=optimizer,
-                          scheduler=scheduler, num_epochs=cfg.num_epochs, callbacks=deepcopy(cfg.callbacks) + [SaveInputImagesCallback(export_dir / 'debug_images', interval=10)],  # 新增保存输入图片的回调,
+                          scheduler=scheduler, num_epochs=cfg.num_epochs, callbacks=deepcopy(cfg.callbacks),
                           hook=cfg.hook,export_dir=export_dir, eval_metric=cfg.eval_metric, monitor_metrics=cfg.monitor_metrics,
                           fp16=cfg.amp, parallel=cfg.parallel, deterministic=cfg.deterministic, max_grad_norm=cfg.max_grad_norm,
                           grad_accumulations=cfg.grad_accumulations, random_state=cfg.seed, logger=LOGGER,
