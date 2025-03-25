@@ -93,26 +93,27 @@ class GradeClassifierConfig:
     )
 
     transforms = dict(
-        train=A.Compose([
-            A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.15, rotate_limit=20,
-                               border_mode=cv2.BORDER_CONSTANT, value=0),
-            A.HorizontalFlip(p=0.5),
-            A.VerticalFlip(p=0.2),
-            A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
-            A.RandomGamma(p=0.3),
-            A.RandomResizedCrop(1536, 768, scale=(0.8, 1.0), p=0.5),  # 修改：随机裁剪尺寸对应分辨率提升
-            A.OneOf([
-                A.ElasticTransform(alpha=60, sigma=60*0.05, alpha_affine=60*0.03),
-                A.GridDistortion(),
-                A.OpticalDistortion(distort_limit=0.5, shift_limit=0.1),
-            ], p=0.1),
-            A.CoarseDropout(max_holes=10, max_height=32, max_width=32, p=0.2),
-            ToTensorV2()
-        ]),
-        test=A.Compose([
-            ToTensorV2()
-        ])
-    )
+    train=A.Compose([
+        A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.15, rotate_limit=20,
+                           border_mode=cv2.BORDER_CONSTANT, value=0),
+        A.HorizontalFlip(p=0.5),
+        A.VerticalFlip(p=0.2),
+        A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
+        A.RandomGamma(p=0.3),
+        # 正确的尺寸元组写法：
+        A.RandomResizedCrop((1536, 768), scale=(0.8, 1.0), p=0.5),
+        A.OneOf([
+            A.ElasticTransform(alpha=60, sigma=60*0.05, alpha_affine=60*0.03),
+            A.GridDistortion(),
+            A.OpticalDistortion(distort_limit=0.5, shift_limit=0.1),
+        ], p=0.1),
+        A.CoarseDropout(max_holes=10, max_height=32, max_width=32, p=0.2),
+        ToTensorV2()
+    ]),
+    test=A.Compose([
+        ToTensorV2()
+    ])
+)
 
     pseudo_labels = None
     debug = False
