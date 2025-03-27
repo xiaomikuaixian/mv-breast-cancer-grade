@@ -85,12 +85,12 @@ class GradeClassifierConfig:
         train=A.Compose([
             CropROI(buffer=80),
             AutoFlip(sample_width=100),
-            A.Resize(1536, 768)  # 1536×768，捕获更多细节
+            A.Resize(1024, 512)  # 1536×768，捕获更多细节
         ], bbox_params=A.BboxParams(format='pascal_voc')),
         test=A.Compose([
             CropROI(buffer=80),
             AutoFlip(sample_width=200),
-            A.Resize(1536, 768)  # 1536×768，捕获更多细节
+            A.Resize(1024, 512)  # 1536×768，捕获更多细节
         ], bbox_params=A.BboxParams(format='pascal_voc')),
     )
 

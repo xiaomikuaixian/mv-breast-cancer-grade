@@ -87,7 +87,7 @@ if __name__ == "__main__":
 
         # 加载预训练权重
         if cfg.weight_path:
-            weight = torch.load(cfg.weight_path, 'cpu')
+            weight = torch.load(cfg.weight_path, 'cpu',weights_only=False)
             fit_state_dict(weight, model)
             model.load_state_dict(weight, strict=False)
             del weight; gc.collect()
@@ -136,7 +136,7 @@ if __name__ == "__main__":
         valid_loader = D.DataLoader(valid_data, batch_size=cfg.batch_size, shuffle=False, num_workers=opt.num_workers, pin_memory=True)
 
         model = cfg.model(**cfg.model_params)
-        checkpoint = torch.load(export_dir/f'fold{fold}.pt', map_location='cpu')
+        checkpoint = torch.load(export_dir/f'fold{fold}.pt', map_location='cpu', weights_only=False)
         fit_state_dict(checkpoint['model'], model)
         model.load_state_dict(checkpoint['model'], strict=False)
 
