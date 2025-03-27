@@ -51,26 +51,6 @@ def make_tiles(img, sz=128, num_tiles=4, criterion='darkness', concat=True, drop
                 drop_index = random.sample(range(valid_count), drop_count)
                 img[drop_index] = img[drop_index].mean()
     return img
-
-
-class ImageToTile(ImageOnlyTransform):
-
-    def __init__(self, tile_size=256, num_tiles=25, concat=True, 
-                 criterion='darkness', dropout=0.0,
-                 always_apply=True, p=1.0):
-        super().__init__(always_apply, p)
-        self.tile_size = tile_size
-        self.num_tiles = num_tiles
-        self.concat = concat
-        self.criterion = criterion
-        self.dropout = dropout
-
-    def apply(self, img, **params):
-        return make_tiles(
-            img, self.tile_size, self.num_tiles, self.criterion, self.concat, self.dropout)
-    
-    def get_transform_init_args_names(self):
-        return ('tile_size', 'num_tiles', 'concat', 'criterion', 'dropout')
     
 
 

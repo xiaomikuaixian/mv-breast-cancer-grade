@@ -1,5 +1,6 @@
 from pathlib import Path
 import cv2
+import numpy as np
 import torch.nn as nn
 import torch.optim as optim
 from torch.optim.lr_scheduler import CosineAnnealingWarmRestarts
@@ -41,12 +42,12 @@ class GradeClassifierConfig:
         pretrained=True,
         spatial_pool=True,
         freeze_layers=True,
-        freeze_until=3
+        freeze_until=4
     )
     weight_path = 'pretrained_models/pretrained_convnext_2048.pth.tar'
 
     num_epochs = 30
-    batch_size = 16
+    batch_size = 8
     optimizer = optim.AdamW
     optimizer_params = dict(lr=8e-5, weight_decay=1e-5)
     scheduler = CosineAnnealingWarmRestarts
@@ -83,35 +84,62 @@ class GradeClassifierConfig:
         train=A.Compose([
             CropROI(buffer=80),
             AutoFlip(sample_width=100),
-            A.Resize(1536, 768)  # 修改：提高分辨率到1536×768，捕获更多细节
+            A.Resize(1536, 768)  # 1536×768，捕获更多细节
         ], bbox_params=A.BboxParams(format='pascal_voc')),
         test=A.Compose([
-            AutoFlip(sample_width=200),
             CropROI(buffer=80),
-            A.Resize(1536, 768)  # 修改：提高分辨率到1536×768
+            AutoFlip(sample_width=200),
+            A.Resize(1536, 768)  # 1536×768，捕获更多细节
         ], bbox_params=A.BboxParams(format='pascal_voc')),
     )
 
     transforms = dict(
     train=A.Compose([
+
+        A.Lambda(image=lambda x, **kwargs: x.astype(np.float32) / 255.0),
+
+        # 平移、缩放和旋转变换
         A.ShiftScaleRotate(shift_limit=0.1, scale_limit=0.15, rotate_limit=20,
                            border_mode=cv2.BORDER_CONSTANT, value=0),
+        # 水平翻转,概率0.5
         A.HorizontalFlip(p=0.5),
+
+        # 垂直翻转,概率0.2
         A.VerticalFlip(p=0.2),
+
+        # 随机调整亮度和对比度,概率0.5
         A.RandomBrightnessContrast(0.2, 0.2, p=0.5),
-        A.RandomGamma(p=0.3),
-        # 正确的尺寸元组写法：
-        A.RandomResizedCrop((1536, 768), scale=(0.8, 1.0), p=0.5),
+
+        # 随机模糊,概率0.25
         A.OneOf([
+                A.GaussianBlur(),
+                A.MotionBlur(),
+                A.MedianBlur(),
+            ], p=0.25),
+
+        # 自适应直方图均衡化,概率0.1
+        A.CLAHE(p=0.1), 
+
+        # 以下三种变形中随机选择一种,概率0.1
+        A.OneOf([
+            # 弹性变形
             A.ElasticTransform(alpha=60, sigma=60*0.05, alpha_affine=60*0.03),
+            # 网格扭曲
             A.GridDistortion(),
+            # 光学畸变
             A.OpticalDistortion(distort_limit=0.5, shift_limit=0.1),
         ], p=0.1),
-        A.CoarseDropout(max_holes=10, max_height=32, max_width=32, p=0.2),
-        ToTensorV2()
+        
+        # 标准化
+        A.Normalize(mean=0.485, std=0.229, max_pixel_value=1.0, always_apply=True),
+
+        # 随机遮挡,最多20个96x96的方块,概率0.2
+        A.CoarseDropout(max_holes=20, max_height=96, max_width=96, p=0.2)
     ]),
     test=A.Compose([
-        ToTensorV2()
+        A.Lambda(image=lambda x, **kwargs: x.astype(np.float32) / 255.0),
+        # 标准化
+        A.Normalize(mean=0.485, std=0.229, max_pixel_value=1.0, always_apply=True),
     ])
 )
 
