@@ -379,8 +379,6 @@ class PatientLevelDataset(D.Dataset):
 
         # 4. 提取标签
         # 同一患者-侧位的所有图像共享相同的标签
-        print(f"target_cols: {self.target_cols}")
-        print(f"aux_target_cols: {self.aux_target_cols}")
         label_values = patient_df[self.target_cols + self.aux_target_cols].iloc[0].values
 
         # 转换为 float16 以节省内存

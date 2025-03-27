@@ -62,8 +62,22 @@ if __name__ == "__main__":
         valid_fold = train.iloc[valid_idx]
 
         # 构建训练和验证数据集
-        train_data = cfg.dataset(train_fold, cfg.image_dir, cfg.preprocess['train'], cfg.transforms['train'], is_test=False, **cfg.dataset_params)
-        valid_data = cfg.dataset(valid_fold, cfg.image_dir, cfg.preprocess['test'], cfg.transforms['test'], is_test=True, **cfg.dataset_params)
+        train_data = cfg.dataset(
+            df=train_fold,
+            image_dir=cfg.image_dir,
+            preprocess=cfg.preprocess['train'],
+            transforms=cfg.transforms['train'],
+            is_test=False,
+            **cfg.dataset_params
+        )
+        valid_data = cfg.dataset(
+            df=valid_fold,
+            image_dir=cfg.image_dir,
+            preprocess=cfg.preprocess['test'],
+            transforms=cfg.transforms['test'],
+            is_test=True,
+            **cfg.dataset_params
+        )
 
         train_loader = D.DataLoader(train_data, batch_size=cfg.batch_size, shuffle=True, num_workers=opt.num_workers, pin_memory=True)
         valid_loader = D.DataLoader(valid_data, batch_size=cfg.batch_size, shuffle=False, num_workers=opt.num_workers, pin_memory=True)
@@ -111,7 +125,14 @@ if __name__ == "__main__":
 
     for fold, (_, valid_idx) in enumerate(fold_iter):
         valid_fold = train.iloc[valid_idx]
-        valid_data = cfg.dataset(valid_fold, cfg.image_dir, cfg.preprocess['test'], cfg.transforms['test'], is_test=True, **cfg.dataset_params)
+        valid_data = cfg.dataset(
+            df=valid_fold,
+            image_dir=cfg.image_dir,
+            preprocess=cfg.preprocess['test'],
+            transforms=cfg.transforms['test'],
+            is_test=True,
+            **cfg.dataset_params
+        )
         valid_loader = D.DataLoader(valid_data, batch_size=cfg.batch_size, shuffle=False, num_workers=opt.num_workers, pin_memory=True)
 
         model = cfg.model(**cfg.model_params)
