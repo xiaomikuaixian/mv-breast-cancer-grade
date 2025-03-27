@@ -44,7 +44,8 @@ class GradeClassifierConfig:
         freeze_layers=True,
         freeze_until=4
     )
-    weight_path = 'pretrained_models/pretrained_convnext_2048.pth.tar'
+    # weight_path = 'pretrained_models/pretrained_convnext_2048.pth.tar'
+    weight_path = None
 
     num_epochs = 30
     batch_size = 8
