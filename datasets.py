@@ -6,6 +6,7 @@ import torch.utils.data as D
 import cv2
 from general import *
 import matplotlib.pyplot as plt
+from typing import List, Optional, Union, Tuple, Dict, Any  # 添加必要的类型导入
 
 class PatientLevelDataset(D.Dataset):
     """患者级别的乳腺癌图像数据集。
@@ -47,7 +48,7 @@ class PatientLevelDataset(D.Dataset):
         preprocess = None,
         transforms = None,
         sample_num: int = 1,
-        view_category: list[list[str]] = [],
+        view_category: List[List[str]] = [],
         replace: bool = False,
         sample_criteria: str = 'high_value',
         is_test: bool = False,
