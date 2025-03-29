@@ -199,7 +199,7 @@ class PatientLevelDataset(D.Dataset):
         img_tensor = self._process_img(img, bbox=bbox)
         return img_tensor
 
-    def _load_best_image(self, df_view: pd.DataFrame) -> tuple[list[torch.Tensor], list]:
+    def _load_best_image(self, df_view: pd.DataFrame) -> Tuple[List[torch.Tensor], List]:
         """根据采样标准为测试集加载最佳图像。"""
         candidate_df = df_view.copy() # 操作副本
 
@@ -288,7 +288,7 @@ class PatientLevelDataset(D.Dataset):
 
         return output_imgs, selected_iids
 
-    def _load_data(self, idx: int) -> tuple[torch.Tensor, torch.Tensor]:
+    def _load_data(self, idx: int) -> Tuple[torch.Tensor, torch.Tensor]:
         """加载指定索引 (患者-侧位对) 的数据。"""
 
         # 1. 获取该患者-侧位对应的 DataFrame
@@ -387,7 +387,7 @@ class PatientLevelDataset(D.Dataset):
 
         return img_tensor, label_tensor
 
-    def __getitem__(self, idx: int) -> tuple[torch.Tensor, torch.Tensor] | tuple[torch.Tensor, torch.Tensor, int]:
+    def __getitem__(self, idx: int) -> Union[Tuple[torch.Tensor, torch.Tensor], Tuple[torch.Tensor, torch.Tensor, int]]:
         """获取数据集中指定索引的样本。"""
 
         # 加载图像和标签数据
