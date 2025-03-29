@@ -47,7 +47,7 @@ class PatientLevelDataset(D.Dataset):
         preprocess = None,
         transforms = None,
         sample_num: int = 1,
-        view_category: list[list[str]] = None,
+        view_category: list[list[str]] = [],
         replace: bool = False,
         sample_criteria: str = 'high_value',
         is_test: bool = False,

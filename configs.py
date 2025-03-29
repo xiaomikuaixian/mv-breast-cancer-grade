@@ -48,7 +48,7 @@ class GradeClassifierConfig:
     weight_path = None
 
     num_epochs = 30
-    batch_size = 8
+    batch_size = 12
     optimizer = optim.AdamW
     optimizer_params = dict(lr=8e-5, weight_decay=1e-5)
     scheduler = CosineAnnealingWarmRestarts
