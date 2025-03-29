@@ -115,7 +115,7 @@ class PatientLevelDataset(D.Dataset):
         # 使用 Path 对象拼接路径更安全可靠
         return self.image_dir / f'{patient_id}{self.sep}{image_id}.png'
 
-    def _get_bbox(self, patient_id, image_id) -> list | None:
+    def _get_bbox(self, patient_id, image_id) -> Optional[list]:
         """获取指定图像的边界框信息。"""
         if self.bbox_dict is None:
             return None # 没有加载边界框数据
@@ -128,7 +128,7 @@ class PatientLevelDataset(D.Dataset):
         else:
             return None # 或者可以返回一个覆盖整个图像的默认框，但这取决于 preprocess 如何处理 None 或默认框
 
-    def _process_img(self, img: np.ndarray, bbox: list | None = None) -> torch.Tensor:
+    def _process_img(self, img: np.ndarray, bbox: Optional[list] = None) -> torch.Tensor:
         """应用预处理和数据增强变换。"""
         processed_img = img
 
